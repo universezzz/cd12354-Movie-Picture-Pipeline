@@ -10,6 +10,7 @@ on:
 
 jobs:
   lint:
+    name: Lint Job
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -37,6 +38,7 @@ jobs:
         run: npm run lint
 
   test:
+    name: Test Job
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -64,6 +66,7 @@ jobs:
         run: CI=true npm test
 
   build:
+    name: Build Job
     needs: [lint, test]
     runs-on: ubuntu-latest
     env:
