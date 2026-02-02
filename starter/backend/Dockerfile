@@ -1,25 +1,29 @@
-FROM public.ecr.aws/docker/library/python:3.10-alpine
+FROM public.ecr.aws/docker/library/python:3.10-slim-bookworm
+
 ENV FLASK_RUN_HOST=0.0.0.0
 
-WORKDIR /
-RUN adduser -u 1000 -D app
-RUN apk update && \
-  apk add \
-  pcre \
-  pcre-dev \
-  build-base \
-  gcc \
-  linux-headers \
-  openssl \
-  libffi-dev \
-  && pip install pipenv
+RUN useradd -m -u 1000 app && \
+    mkdir -p /var/www/app && \
+    chown -R app:app /var/www/app
 
-RUN mkdir -p /var/www/app && mkdir /app
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libpcre3 \
+    libpcre3-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/* && \
+    pip install pipenv
 
 
-COPY Pipfile* /app
-RUN cd /app && pipenv install --system --deploy
+WORKDIR /app
 
-COPY . /app
+COPY --chown=app:app Pipfile* ./
+
+RUN pipenv install --system --deploy
+
+COPY --chown=app:app . .
+
+USER app
 
 CMD uwsgi --http :5000 --master --enable-threads -s /var/www/app/app.sock --manage-script-name --mount /=app:app
