@@ -19,11 +19,10 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY --chown=app:app Pipfile* ./
-
 RUN pipenv install --system --deploy
 
 COPY --chown=app:app . .
 
 USER app
 
-CMD uwsgi --http :5000 --master --enable-threads -s /var/www/app/app.sock --manage-script-name --mount /=app:app
+CMD ["uwsgi", "--http", "0.0.0.0:5000", "--master", "--enable-threads", "--chdir", "/app", "--pythonpath", "/app", "--module", "__init__:app"]
